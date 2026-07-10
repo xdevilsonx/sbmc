@@ -30,7 +30,7 @@
         <input type="date" id="calendario" onchange="filtrarPorDataCalendario()">
     </div>
 
-    <div id="loading" class="loading">Carregando eventos do Google Drive...</div>
+    <div id="loading" class="loading">Carregando eventos locais...</div>
 
     <!-- SEÇÃO 1: FINAL DE SEMANA MAIS PRÓXIMO -->
     <div class="secao" id="secao-fds" style="display:none;">
@@ -46,64 +46,37 @@
 </div>
 
 <script>
-// O ID do seu arquivo do Google Drive
-    const ID_DO_ARQUIVO = "15Nw61FIKWgKXyPWvGHaH6p_9A_F6MVa8";
-    
-    // Link modificado para download dos dados puros
-    const URL_CSV = `https://docs.google.com/uc?export=download&id=${ID_DO_ARQUIVO}`;
+    // Agora aponta para o arquivo local dentro do próprio GitHub!
+    const URL_CSV = "eventos.csv";
 
     let todosOsEventos = [];
 
-    // Função que roda assim que a página abre
     async function carregarDadosDoCSV() {
         try {
             const resposta = await fetch(URL_CSV);
             const textoDoCsv = await resposta.text();
             
-            // Divide o CSV por linhas
             const linhas = textoDoCsv.split("\n");
             
-            // Verifica se a primeira linha é o cabeçalho. Se for, pula ela.
+            // Pula o cabeçalho se houver
             const indiceInicial = linhas[0].includes("Data") ? 1 : 0;
             const linhasDados = linhas.slice(indiceInicial);
             
-            // Hoje é sexta-feira, 10 de Julho de 2026.
-            const hoje = new Date("2026-07-10"); 
-            hoje.setHours(0,0,0,0);
+            const hoje = new Date();
+            hoje.setHours(0,0,0,0); 
 
             linhasDados.forEach(linha => {
                 if (!linha.trim()) return;
                 
-                // Divide a linha pelas vírgulas
                 const [dataStr, nome, link] = linha.split(",");
-                if (!dataStr || !nome || !link) return; // Pula linhas mal formatadas
-
-    // Função que roda assim que a página abre
-    async function carregarDadosDoCSV() {
-        try {
-            const resposta = await fetch(URL_CSV);
-            const textoDoCsv = await reply.text();
-            
-            // Divide o CSV por linhas e ignora o cabeçalho (Data, Evento, LinkFlyer)
-            const linhas = textoDoCsv.split("\n").slice(1);
-            
-            const hoje = new Date();
-            hoje.setHours(0,0,0,0); // Zera as horas para comparar apenas os dias
-
-            linhas.forEach(linha => {
-                if (!linha.trim()) return;
+                if (!dataStr || !nome || !link) return;
                 
-                // Divide a linha pelas vírgulas
-                const [dataStr, nome, link] = linha.split(",");
-                
-                // Converte a data do formato BR (DD/MM/AAAA) para Objeto Date
-                const [dia, mes, ano] = dataStr.split("/");
+                const [dia, mes, ano] = dataStr.trim().split("/");
                 const dataEvento = new Date(ano, mes - 1, dia);
 
-                // Regra principal: Ignora se o evento for mais antigo que HOJE
                 if (dataEvento >= hoje) {
                     todosOsEventos.push({
-                        dataStr: dataStr,
+                        dataStr: dataStr.trim(),
                         dataObjeto: dataEvento,
                         nome: nome.trim(),
                         link: link.trim()
@@ -111,14 +84,13 @@
                 }
             });
 
-            // Ordena os eventos do mais próximo para o mais distante
             todosOsEventos.sort((a, b) => a.dataObjeto - b.dataObjeto);
 
             document.getElementById("loading").style.display = "none";
             renderizarPainel(todosOsEventos);
 
         } catch (erro) {
-            document.getElementById("loading").innerText = "Erro ao carregar os dados da planilha do Drive.";
+            document.getElementById("loading").innerText = "Erro ao carregar o arquivo eventos.csv do repositório.";
             console.error(erro);
         }
     }
@@ -131,8 +103,6 @@
         containerFuturos.innerHTML = "";
 
         const hoje = new Date();
-        
-        // Descobre a data do próximo sábado e domingo para a seção de destaques
         const diaDaSemanaAtual = hoje.getDay(); 
         const diasAteSabado = (6 - diaDaSemanaAtual) % 7;
         
@@ -149,13 +119,12 @@
         eventos.forEach(ev => {
             const cardHTML = `
                 <div class="card">
-                    <img src="${ev.link}" alt="Flyer do Evento" onerror="this.src='https://via.placeholder.com/280x320?text=Sem+Imagem'">
+                    <img src="${ev.link}" alt="Flyer" onerror="this.src='https://via.placeholder.com/280x320?text=Sem+Imagem'">
                     <div class="nome-evento">${ev.nome}</div>
                     <div class="data-evento">📅 ${ev.dataStr}</div>
                 </div>
             `;
 
-            // Verifica se o evento cai no final de semana atual
             if (ev.dataObjeto.getTime() === proximoSabado.getTime() || ev.dataObjeto.getTime() === proximoDomingo.getTime()) {
                 containerFds.innerHTML += cardHTML;
                 temFds = true;
@@ -165,29 +134,22 @@
             }
         });
 
-        // Mostra as seções apenas se houver eventos nelas
         document.getElementById("secao-fds").style.display = temFds ? "block" : "none";
         document.getElementById("secao-futuros").style.display = temFuturos ? "block" : "none";
     }
 
-    // Função de Busca pelo Calendário HTML5
     function filtrarPorDataCalendario() {
-        const dataInput = document.getElementById('calendario').value; // Retorna AAAA-MM-DD
+        const dataInput = document.getElementById('calendario').value;
         if (!dataInput) {
-            renderizarPainel(todosOsEventos); // Se limpar o input, mostra tudo de novo
+            renderizarPainel(todosOsEventos);
             return;
         }
-
         const [ano, mes, dia] = dataInput.split("-");
         const dataBuscada = new Date(ano, mes - 1, dia);
-
-        // Filtra o array principal para achar o dia exato
         const filtrados = todosOsEventos.filter(ev => ev.dataObjeto.getTime() === dataBuscada.getTime());
-        
         renderizarPainel(filtrados);
     }
 
-    // Inicia o script
     carregarDadosDoCSV();
 </script>
 </body>
