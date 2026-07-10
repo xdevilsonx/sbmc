@@ -1,256 +1,220 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mural de Eventos - Capoeira</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mural de Eventos — Capoeira</title>
+    <style>
+        /* -------------------------------------------------
+           Variáveis & Resets
+        ------------------------------------------------- */
+        :root{
+            --primary:#e67e22;
+            --primary-dark:#d35400;
+            --bg:#f4f4f9;
+            --card-bg:#fff;
+            --text:#333;
+            --subtle:#7f8c8d;
+            --quickview-bg:#fff;
+            --qv-shadow:0 6px 20px rgba(0,0,0,.25);
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{
+            font-family:"Segoe UI",Arial,sans-serif;
+            background:var(--bg);
+            padding:20px;
+            color:var(--text);
+        }
+        .container{
+            max-width:1000px;
+            margin:0 auto;
+        }
+        h1{
+            text-align:center;
+            color:#222;
+            margin-bottom:1.5rem;
+        }
 
-<style>
-/* -------------------------------------------------
-   Variáveis e estilos globais
-------------------------------------------------- */
-:root{
-    --primary:#e67e22;
-    --primary-dark:#d35400;
-    --bg:#f4f4f9;
-    --card-bg:#fff;
-    --text:#333;
-    --subtle:#7f8c8d;
-    --quickview-bg:#fff;
-    --quickview-shadow:0 6px 20px rgba(0,0,0,.25);
-}
+        /* -------------------------------------------------
+           Filtros
+        ------------------------------------------------- */
+        .busca-container{
+            display:flex;
+            flex-wrap:wrap;
+            gap:15px;
+            justify-content:center;
+            background:#fff;
+            padding:15px;
+            border-radius:8px;
+            box-shadow:0 2px 4px rgba(0,0,0,.05);
+            margin:25px 0;
+        }
+        .busca-container label{
+            display:flex;
+            flex-direction:column;
+            font-weight:600;
+        }
+        .busca-container select,
+        .busca-container input[type="date"]{
+            padding:8px 10px;
+            border:1px solid #ccc;
+            border-radius:4px;
+            font-size:16px;
+            min-width:160px;
+        }
 
-/* Reset básico */
-*{box-sizing:border-box;margin:0;padding:0}
+        /* -------------------------------------------------
+           Seções
+        ------------------------------------------------- */
+        .secao{margin-bottom:40px;}
+        .titulo-secao{
+            border-bottom:3px solid var(--primary);
+            padding-bottom:5px;
+            color:var(--primary);
+            font-size:24px;
+            margin-top:0;
+        }
 
-/* -------------------------------------------------
-   Body + Container
-------------------------------------------------- */
-body{
-    font-family:"Segoe UI",Arial,sans-serif;
-    background:var(--bg);
-    padding:20px;
-    color:var(--text);
-}
-.container{
-    max-width:1000px;
-    margin:0 auto;
-}
-h1{
-    text-align:center;
-    color:#222;
-    margin-bottom:1.5rem;
-}
+        /* Agrupamento de mês (“Outros Eventos Futuros”) */
+        .mes-secao{margin-top:30px;}
+        .titulo-mes{
+            border-bottom:2px solid #3498db;
+            padding-bottom:5px;
+            color:#2c3e50;
+            font-size:20px;
+            margin:0;
+        }
 
-/* -------------------------------------------------
-   Filtros
-------------------------------------------------- */
-.busca-container{
-    display:flex;
-    flex-wrap:wrap;
-    gap:15px;
-    justify-content:center;
-    background:#fff;
-    padding:15px;
-    border-radius:8px;
-    box-shadow:0 2px 4px rgba(0,0,0,.05);
-    margin:25px 0;
-}
-.busca-container label{
-    display:flex;
-    flex-direction:column;
-    font-weight:600;
-}
-.busca-container select,
-.busca-container input[type="date"]{
-    padding:8px 10px;
-    border:1px solid #ccc;
-    border-radius:4px;
-    font-size:16px;
-    min-width:160px;
-}
+        /* -------------------------------------------------
+           Grade de cards – mesma para ambos os grupos
+        ------------------------------------------------- */
+        .grid-flyers{
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+            gap:25px;
+            margin-top:15px;
+        }
 
-/* -------------------------------------------------
-   Seções
-------------------------------------------------- */
-.secao{margin-bottom:40px;}
-.titulo-secao{
-    border-bottom:3px solid var(--primary);
-    padding-bottom:5px;
-    color:var(--primary);
-    font-size:24px;
-    margin-top:0;
-}
+        .card{
+            background:var(--card-bg);
+            border-radius:8px;
+            padding:15px;
+            box-shadow:0 4px 8px rgba(0,0,0,.08);
+            text-align:center;
+            display:flex;
+            flex-direction:column;
+            justify-content:space-between;
+            cursor:pointer;
+            transition:transform .2s,box-shadow .2s;
+            position:relative;
+        }
+        .card:hover{
+            transform:translateY(-3px);
+            box-shadow:0 6px 12px rgba(0,0,0,.12);
+        }
+        .card img{
+            max-width:100%;
+            border-radius:6px;
+            height:320px;
+            object-fit:cover;
+            background:#eee;
+            display:block;
+            margin-bottom:10px;
+        }
+        .nome-evento{
+            font-weight:bold;
+            font-size:18px;
+            margin:0 0 5px;
+            color:#2c3e50;
+        }
+        .data-evento{
+            font-weight:bold;
+            color:var(--subtle);
+            font-size:14px;
+            margin-bottom:10px;
+        }
 
-/* Grupo de mês (dentro de "Outros Eventos Futuros") */
-.mes-secao{margin-top:30px;}
-.titulo-mes{
-    border-bottom:2px solid #3498db;
-    padding-bottom:5px;
-    color:#2c3e50;
-    font-size:20px;
-    margin:0;
-}
+        /* Ações do cartão (botão de adição ao calendário) */
+        .card-acoes{
+            display:flex;
+            gap:8px;
+            margin-top:8px;
+        }
+        .btn-calendario{
+            flex:1;
+            background:#2c3e50;
+            color:#fff;
+            text-decoration:none;
+            padding:6px 0;
+            border-radius:4px;
+            font-size:13px;
+            font-weight:600;
+            cursor:pointer;
+            transition:background .2s;
+            text-align:center;
+        }
+        .btn-calendario:hover{
+            background:#34495e;
+        }
 
-/* -------------------------------------------------
-   Grade de cards
-------------------------------------------------- */
-.grid-flyers{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-    gap:25px;
-    margin-top:15px;
-}
+        /* -------------------------------------------------
+           Quick‑View (pop‑up de visualização maior)
+        ------------------------------------------------- */
+        .quickview{
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.5);
+            display:none;               /* oculto por padrão */
+            align-items:center;
+            justify-content:center;
+            z-index:1000;
+            padding:20px;
+        }
+        .quickview.active{
+            display:flex;
+        }
+        .quickview .qv-content{
+            background:var(--quickview-bg);
+            border-radius:8px;
+            max-width:90vw;
+            max-height:90vh;
+            width:auto;
+            text-align:center;
+            box-shadow:var(--qv-shadow);
+            position:relative;
+            padding:15px;
+        }
+        .quickview .qv-content img{
+            max-width:100%;
+            max-height:80vh;
+            border-radius:6px;
+            display:block;
+            margin:0 auto;
+        }
+        .quickview .qv-close{
+            position:absolute;
+            top:10px;
+            right:12px;
+            font-size:26px;
+            font-weight:bold;
+            color:#555;
+            cursor:pointer;
+            line-height:1;
+        }
+        .quickview .qv-close:hover{
+            color:#000;
+        }
 
-/* Cada card – agora clicável e com botão de calendário */
-.card{
-    background:var(--card-bg);
-    border-radius:8px;
-    padding:15px;
-    box-shadow:0 4px 8px rgba(0,0,0,.08);
-    text-align:center;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-    cursor:pointer;
-    transition:transform .2s,box-shadow .2s;
-    position:relative;
-}
-.card:hover{
-    transform:translateY(-3px);
-    box-shadow:0 6px 12px rgba(0,0,0,.12);
-}
-.card img{
-    max-width:100%;
-    border-radius:6px;
-    height:320px;
-    object-fit:cover;
-    background:#eee;
-    display:block;
-    margin-bottom:10px;
-}
-.nome-evento{
-    font-weight:bold;
-    font-size:18px;
-    margin:0 0 5px;
-    color:#2c3e50;
-}
-.data-evento{
-    font-weight:bold;
-    color:var(--subtle);
-    font-size:14px;
-    margin-bottom:10px;
-}
-
-/* Ações do calendário (adicionadas ao card) */
-.card-acoes{
-    display:flex;
-    gap:8px;
-    margin-top:8px;
-}
-.btn-calendario{
-    flex:1;
-    background:#2c3e50;
-    color:#fff;
-    text-decoration:none;
-    padding:6px 0;
-    border-radius:4px;
-    font-size:13px;
-    font-weight:600;
-    cursor:pointer;
-    transition:background .2s;
-}
-.btn-calendario:hover{
-    background:#34495e;
-}
-
-/* -------------------------------------------------
-   Quick‑View (pop‑up de visualização maior – não
-   é uma lightbox em tela cheia). Funciona para
-   qualquer card clicado.
-------------------------------------------------- */
-.quickview{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.5);
-    display:none;               /* oculto por padrão */
-    align-items:center;
-    justify-content:center;
-    z-index:1000;
-    padding:20px;
-}
-.quickview.active{display:flex;}
-.quickview .qv-content{
-    background:var(--quickview-bg);
-    border-radius:8px;
-    max-width:90vw;
-    max-height:90vh;
-    width:auto;
-    text-align:center;
-    box-shadow:var(--quickview-shadow);
-    position:relative;
-    padding:15px;
-}
-.quickview .qv-content img{
-    max-width:100%;
-    max-height:80vh;
-    border-radius:6px;
-    display:block;
-    margin:0 auto;
-}
-.quickview .qv-close{
-    position:absolute;
-    top:10px;
-    right:12px;
-    font-size:26px;
-    font-weight:bold;
-    color:#555;
-    cursor:pointer;
-    line-height:1;
-}
-.quickview .qv-close:hover{color:#000;}
-
-/* -------------------------------------------------
-   Light‑box para flyers de fim de semana (iguais às
-   imagens principais de "visualização rápida") – manter
-   consistente com o design.
-------------------------------------------------- */
-.lightbox{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.85);
-    align-items:center;
-    justify-content:center;
-    z-index:1000;
-}
-.lightbox.active{display:flex;}
-.lightbox img{
-    max-width:90vw;
-    max-height:90vh;
-    border-radius:8px;
-    box-shadow:0 0 20px rgba(255,255,255,.2);
-}
-.lightbox .close{
-    position:absolute;
-    top:20px;
-    right:25px;
-    color:#fff;
-    font-size:36px;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-/* -------------------------------------------------
-   Loading e mensagens
-------------------------------------------------- */
-.loading{
-    text-align:center;
-    font-size:18px;
-    color:#666;
-    margin:30px 0;
-}
-</style>
+        /* -------------------------------------------------
+           Loading e mensagens
+        ------------------------------------------------- */
+        .loading{
+            text-align:center;
+            font-size:18px;
+            color:#666;
+            margin:30px 0;
+        }
+    </style>
 </head>
 
 <body>
@@ -258,7 +222,7 @@ h1{
 <div class="container">
     <h1>Mural de Eventos de Capoeira 🤸‍♂️</h1>
 
-    <!-- Filtros -->
+    <!-- ---------- Filtros ---------- -->
     <div class="busca-container">
         <label>
             <strong>Buscar por data:</strong>
@@ -274,20 +238,20 @@ h1{
 
     <div id="loading" class="loading">Carregando eventos locais…</div>
 
-    <!-- Eventos do fim de semana (apenas Sábado/Domingo) -->
+    <!-- ---------- Eventos do fim de semana (apenas sábado/domingo) ---------- -->
     <div class="secao" id="secao-fds" style="display:none;">
         <h2 class="titulo-secao">Próximos Eventos – Este Final de Semana</h2>
         <div class="grid-flyers" id="flyers-fds"></div>
     </div>
 
-    <!-- Outros eventos futuros agrupados por mês -->
+    <!-- ---------- Outros eventos futuros – agrupados por mês ---------- -->
     <div class="secao" id="secao-futuros" style="display:none;">
         <h2 class="titulo-secao">Outros Eventos Futuros</h2>
         <div id="flyers-futuros"></div>
     </div>
 </div>
 
-<!-- Quick‑View (visualização maior em pop‑up) -->
+<!-- Quick‑View (pop‑up de visualização maior do cartão) -->
 <div id="quickview" class="quickview" onclick="fecharQuickview()">
     <div class="qv-content" onclick="event.stopPropagation()">
         <span class="qv-close" title="Fechar">&times;</span>
@@ -295,24 +259,19 @@ h1{
     </div>
 </div>
 
-<!-- Light‑box original para flyers de fim de semana (mantido caso ainda seja necessário) -->
-<div id="lightbox" class="lightbox" onclick="fecharLightbox()">
-    <span class="close" title="Fechar">&times;</span>
-    <img id="lightbox-img" src="" alt="Flyer em tamanho completo">
-</div>
-
 <script>
 /* -----------------------------------------------------------------
-   CONFIGURAÇÃO E CARREGAMENTO
+   CONFIGURAÇÃO E DADOS
 ----------------------------------------------------------------- */
-const URL_CSV = "eventos.csv"; // mantenha o mesmo arquivo CSV local
+const URL_CSV = "eventos.csv"; // arquivo CSV local (deve estar no mesmo diretório)
 let todosOsEventos = [];
 
-/* Lê o CSV, insere os dados futuros em `todosOsEventos` e popula
-   o seletor de filtro de mês. */
+/* Lê o CSV e preenche `todosOsEventos` (somente datas futuras).
+   Também pré-popula o seletor <select> de filtro de mês. */
 async function carregarDadosDoCSV() {
     try {
         const resp = await fetch(URL_CSV);
+        if (!resp.ok) throw new Error("CSV fetch failed");
         const texto = await resp.text();
 
         const linhas = texto.split("\n");
@@ -329,7 +288,7 @@ async function carregarDadosDoCSV() {
 
             const [dia, mes, ano] = dataStr.trim().split("/");
             const dataEvento = new Date(ano, mes - 1, dia);
-            if (dataEvento < hoje) return; // só futuros
+            if (dataEvento < hoje) return; // ignora datas passadas
 
             todosOsEventos.push({
                 dataStr: dataStr.trim(),
@@ -339,19 +298,18 @@ async function carregarDadosDoCSV() {
             });
         });
 
-        // ordena do mais próximo para o mais distante
-        todosOsEventos.sort((a,b)=>a.dataObjeto - b.dataObjeto);
+        todosOsEventos.sort((a,b) => a.dataObjeto - b.dataObjeto);
         popularcharOptionsMes();
         aplicarFiltros(); // renderiza tudo inicialmente
-    } catch(e){
+    } catch (e) {
         document.getElementById("loading").innerText =
-            "Erro ao carregar o arquivo eventos.csv do repositório.";
+            "Erro ao carregar eventos.csv do repositório.";
         console.error(e);
     }
 }
 
-/* Preenche o <select> de filtro de mês com opções únicas
-   "YYYY‑MM" ordenadas (mais recente primeiro). */
+/* Popula o <select> de filtro de mês com opções únicas
+   “YYYY‑MM” ordenadas (mais recente primeiro). */
 function popularcharOptionsMes(){
     const sel = document.getElementById("filtro-mes");
     const opcoes = new Set();
@@ -362,7 +320,7 @@ function popularcharOptionsMes(){
         opcoes.add(`${yyyy}-${mm}`);
     });
 
-    const arr = Array.from(opcoes).sort().reverse(); // mais recente primeiro
+    const arr = Array.from(opcoes).sort().reverse();
     sel.innerHTML = `<option value="">Todos os meses</option>` +
         arr.map(chave=>{
             const [ano, mes] = chave.split("-");
@@ -373,7 +331,7 @@ function popularcharOptionsMes(){
 }
 
 /* -----------------------------------------------------------------
-   LÓGICA DE FILTRAGEM (filtro de data + mês)
+   FILTROS (data + mês)
 ----------------------------------------------------------------- */
 function aplicarFiltros(){
     const dataInput = document.getElementById("calendario").value; // YYYY‑MM‑DD
@@ -381,19 +339,21 @@ function aplicarFiltros(){
 
     let filtrados = todosOsEventos;
 
-    /* Filtro de data única */
+    // filtro de data exata
     if(dataInput){
         const [ano, mes, dia] = dataInput.split("-");
         const dataBuscada = new Date(ano, mes-1, dia);
-        filtrados = filtrados.filter(ev=>ev.dataObjeto.getTime() === dataBuscada.getTime());
+        filtrados = filtrados.filter(ev =>
+            ev.dataObjeto.getTime() === dataBuscada.getTime()
+        );
     }
 
-    /* Filtro de mês */
+    // filtro de mês
     if(mesSel){
         const [ano, mes] = mesSel.split("-");
-        const inicio = new Date(ano, mes-1,1);
-        const fim = new Date(ano, mes-1,31,23,59,59,999);
-        filtrados = filtrados.filter(ev=>
+        const inicio = new Date(ano, mes-1, 1);
+        const fim = new Date(ano, mes-1, 31, 23,59,59,999);
+        filtrados = filtrados.filter(ev =>
             ev.dataObjeto.getTime() >= inicio.getTime() &&
             ev.dataObjeto.getTime() <= fim.getTime()
         );
@@ -424,38 +384,44 @@ function renderizarPainel(eventos){
     let temFds = false;
     const futurosPorMes = {};
 
-    eventos.forEach(ev=>{
-        // constrói o HTML do card (incluindo botão de adicionar ao calendário)
+    eventos.forEach(ev => {
+        // ----- HTML do card (inclui botão "Adicionar ao calendário")
         const cardHTML = `
             <div class="card" data-idx="${todosOsEventos.indexOf(ev)}">
                 <img src="${ev.link}" alt="Flyer" onerror="this.src='https://via.placeholder.com/280x320?text=Sem+Imagem'">
                 <div class="nome-evento">${ev.nome}</div>
                 <div class="data-evento">📅 ${ev.dataStr}</div>
                 <div class="card-acoes">
-                    <a href="#" class="btn-calendario" onclick="event.stopPropagation(); mostrarModalAdicionarAoCalendario('${ev.nome}','${ev.dataStr}', event);">Adicionar ao calendário</a>
+                    <a href="#" class="btn-calendario"
+                       onclick="event.stopPropagation(); mostrarModalAdicionarAoCalendario(
+                           '${ev.nome.replace(/'/g,"&#x27;")}',
+                           '${ev.dataStr}',
+                           event
+                       )">
+                        Adicionar ao calendário
+                    </a>
                 </div>
             </div>
         `;
 
-        // classification: fim de semana ou futuro
-        if(ev.dataObjeto.getTime() === proximoSabado.getTime() || ev.dataObjeto.getTime() === proximoDomingo.getTime()){
+        if (ev.dataObjeto.getTime() === proximoSabado.getTime() ||
+            ev.dataObjeto.getTime() === proximoDomingo.getTime()) {
             fdsContainer.innerHTML += cardHTML;
             temFds = true;
         } else {
             const chaveMes = ev.dataObjeto.getFullYear() + "-" +
                              String(ev.dataObjeto.getMonth()+1).padStart(2,"0");
-            if(!futurosPorMes[chaveMes]) futurosPorMes[chaveMes] = [];
+            if (!futurosPorMes[chaveMes]) futurosPorMes[chaveMes] = [];
             futurosPorMes[chaveMes].push(cardHTML);
         }
     });
 
-    // exibe/oculta a seção de fim de semana
     document.getElementById("secao-fds").style.display = temFds ? "block" : "none";
 
-    // constrói a seção "futuros" com títulos por mês
+    // constrói a seção "Outros Eventos Futuros" com títulos por mês
     const containerFuturos = document.getElementById("flyers-futuros");
-    if(Object.keys(futurosPorMes).length){
-        Object.keys(futurosPorMes).sort().forEach(chave=>{
+    if (Object.keys(futurosPorMes).length) {
+        Object.keys(futurosPorMes).sort().forEach(chave => {
             const [ano, mes] = chave.split("-");
             const d = new Date(ano, mes-1, 1);
             const tituloMes = d.toLocaleString("pt-BR",{month:"long", year:"numeric"});
@@ -468,98 +434,91 @@ function renderizarPainel(eventos){
     }
     document.getElementById("secao-futuros").style.display = Object.keys(futurosPorMes).length ? "block" : "none";
 
-    // esconde o indicador de carregamento se não houver dados
     document.getElementById("loading").style.display = "none";
 }
 
 /* -----------------------------------------------------------------
-   QUICK‑VIEW  (pop‑up maior para qualquer card)
+   QUICK‑VIEW  (pop‑up de visualização maior de imagem)
 ----------------------------------------------------------------- */
 function abrirQuickview(idx){
     const ev = todosOsEventos[idx];
-    if(!ev) return;
+    if (!ev) return;
     document.getElementById("qv-img").src = ev.link;
     document.getElementById("quickview").classList.add("active");
 }
 function fecharQuickview(){
     document.getElementById("quickview").classList.remove("active");
-    document.getElementById("qv-img").src=""; // interrompe o carregamento
+    document.getElementById("qv-img").src = ""; // interrompe o carregamento quando não estiver visível
 }
 
-/* -----------------------------------------------------------------
-   LEITURA DO INDEX DO CARD E ABERTURA DA QUICKVIEW
------------------------------------------------------------------ */
+/* disparam a quickview quando qualquer cartão (.card) é clicado.
+   O botão "Adicionar ao calendário" para evitar essa ação no clique. */
 document.addEventListener("click", e=>{
     const card = e.target.closest(".card");
-    if(card){
+    if (card){
         const idx = Number(card.getAttribute("data-idx"));
         abrirQuickview(idx);
     }
 });
 
-/* -----------------------------------------------------------------
-   DATE PICKER ORIGINAL (lightbox para flyers de fim de semana) – mantido
-   por compatibilidade com versões anteriores.
------------------------------------------------------------------ */
-function abrirLightbox(imgSrc){
-    document.getElementById("lightbox-img").src = imgSrc;
-    document.getElementById("lightbox").classList.add("active");
-}
-function fecharLightbox(){
-    document.getElementById("lightbox").classList.remove("active");
-}
-
-/* Fecha ambos os modais ao pressionar ESC */
+/* Fecha ambos os modais (Quick‑View e o leve modal de adição ao calendário)
+   ao pressionar ESC. */
 document.addEventListener("keydown", e=>{
-    if(e.key==="Escape"){
+    if (e.key === "Escape"){
         fecharQuickview();
-        if(document.getElementById("lightbox").classList.contains("active")){
-            fecharLightbox();
-        }
     }
 });
 
 /* -----------------------------------------------------------------
-   MODAL DE "ADICIONAR AO CALENDÁRIO" – opções e download de .ics
+   MODAL DE "ADICIONAR AO CALENDÁRIO"
 ----------------------------------------------------------------- */
 function mostrarModalAdicionarAoCalendario(titulo, dataStr, eOriginal){
-    eOriginal.preventDefault(); // evita que o clique se propague
+    eOriginal.preventDefault(); // impede que o clique se propague
 
-    // Formata data como YYYY‑MM‑DD (para ISO 8601, usado em URLs do Google e .ics)
-    const partes = dataStr.split("/");
-    const dataCal = `${partes[2]}-${partes[1].padStart(2,"0")}-${partes[0].padStart(2,"0")}`;
+    // Normaliza a data como YYYYMMDD (Sem o /)
+    const [dia, mes, ano] = dataStr.split("/");
+    const dataCal = `${ano}${mes.padStart(2,"0")}${dia.padStart(2,"0")}`;
+    const dataCalFormatado = `${ano}-${mes.padStart(2,"0")}-${dia.padStart(2,"0")}`; // para URLs web
 
-    // Gera um evento .ics simples (único dia)
-    const conteudoICS = [
+    // 1) Apple Calendar (iOS) – link profundo “calendarevent://”
+    const iosUrl = `calendarevent://?title=${encodeURIComponent(titulo)}&`+
+                   `dates=${dataCal}/${dataCal}&`+
+                   `location=&description=Evento%20do%20Mural%20de%20Capoeira`;
+
+    // 2) Google Calendar – funciona nativamente no Android (e no navegador)
+    const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(titulo)}&dates=${dataCalFormatado}/${dataCalFormatado}&details=${encodeURIComponent("Evento do Mural de Capoeira")}&location=Online`;
+
+    // 3) Gera um evento .ics para download manual
+    const icsContent = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
         "PRODID:-//Mural de Capoeira//Evento único//PT",
         "BEGIN:VEVENT",
-        `UID:${Date.now()}@muralcapoeira.com`, // único
+        `UID:${Date.now()}@muralcapoeira.com`,
         `DTSTART;VALUE=DATE:${dataCal}`,
         `DTEND;VALUE=DATE:${dataCal}`,
         `SUMMARY:${titulo}`,
         "END:VEVENT",
         "END:VCALENDAR"
     ].join("\r\n");
+    const icsBase64 = encodeURIComponent(icsContent);
 
-    // URLs para criação rápida de terceiros
-    const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(titulo)}&dates=${dataCal}/${dataCal}&details=${encodeURIComponent("Evento do Mural de Capoeira")}&location=Online`;
-    const appleUrl = `calendarevent://?title=${encodeURIComponent(titulo)}&dates=${dataCal}00%?00&?00`; // deep‑link
-    const outlookUrl = `https://outlook.live.com/calendar/0/action/compose?subject=${encodeURIComponent(titulo)}&startdt=${dataCal}&enddt=${dataCal}`;
-
-    // Mostra um pequeno modal (reutiliza o próprio quickview com um HTML diferente)
+    // Constrói o HTML do modal (reuse o quickview, mas com different content)
     const qv = document.getElementById("quickview");
     qv.innerHTML = `
         <div class="qv-content" onclick="event.stopPropagation()">
             <span class="qv-close" title="Fechar">&times;</span>
             <h3 style="margin-top:0">Adicionar “${titulo}” ao calendário</h3>
-            <p style="margin-bottom:10px">Escolha sua plataforma:</p>
+            <p style="margin-bottom:10px">Escolha seu app de calendário:</p>
             <div style="display:flex;flex-direction:column;gap:10px">
-                <a class="btn-calendario" href="${googleUrl}" target="_blank">Google Calendar</a>
-                <a class="btn-calendario" href="${outlookUrl}" target="_blank">Outlook / Live</a>
-                <a class="btn-calendario" href="#" onclick="event.stopPropagation();gerarDownloadICS('${encodeURIComponent(conteudoICS)}');return false;">
-                    Baixar .ics (para iOS/Android/Other)
+                <a class="btn-calendario" href="${iosUrl}">
+                    Apple Calendar (iOS)
+                </a>
+                <a class="btn-calendario" href="${googleUrl}" target="_blank">
+                    Google/Calendar (Android)
+                </a>
+                <a class="btn-calendario" href="#" onclick="event.stopPropagation();gerarDownloadICS('${icsBase64}');return false;">
+                    Baixar .ics (qualquer plataforma)
                 </a>
                 <a class="btn-calendario" href="https://support.apple.com/pt-br/guide/calendar/ifl1035/mac" target="_blank">
                     Como adicionar evento no Apple Calendar
@@ -569,17 +528,16 @@ function mostrarModalAdicionarAoCalendario(titulo, dataStr, eOriginal){
     `;
     qv.classList.add("active");
 
-    // Re‑liga o manipulador de fechamento original para o botão close dentro do modal
+    // Re‑liga o botão de fechamento neste modal
     qv.querySelector(".qv-close").onclick = e=>{
         e.stopPropagation();
         fecharQuickview();
     };
 }
 
-/* Baixa o arquivo .ics */
-function gerarDownloadICS(conteudoCodificado){
-    // decodifica os dados da URI que escapamos
-    const decodificado = decodeURIComponent(conteudoCodificado);
+/* Baixa o arquivo .ics quando solicitado */
+function gerarDownloadICS(icsBase64){
+    const decodificado = decodeURIComponent(icsBase64);
     const blob = new Blob([decodificado], {type:"text/calendar;charset=utf-8"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -597,5 +555,6 @@ function gerarDownloadICS(conteudoCodificado){
 ----------------------------------------------------------------- */
 carregarDadosDoCSV();
 </script>
+
 </body>
 </html>
