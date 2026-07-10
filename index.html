@@ -5,19 +5,151 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mural de Eventos - Capoeira</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f4f9; padding: 20px; color: #333; }
+        :root {
+            --primary: #e67e22;
+            --primary-dark: #d35400;
+            --bg: #f4f4f9;
+            --card-bg: #ffffff;
+            --text: #333;
+            --subtle: #7f8c8d;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--bg);
+            padding: 20px;
+            color: var(--text);
+        }
         .container { max-width: 1000px; margin: 0 auto; }
-        h1 { text-align: center; color: #222; }
-        .busca-container { text-align: center; margin: 25px 0; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        input[type="date"] { padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px; }
+        h1 {
+            text-align: center;
+            color: #222;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ---------- Filtros ---------- */
+        .busca-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,.05);
+            margin: 25px 0;
+        }
+        .busca-container label {
+            display: flex;
+            flex-direction: column;
+            font-weight: 600;
+        }
+        .busca-container select,
+        .busca-container input[type="date"] {
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            min-width: 160px;
+        }
+
+        /* ---------- Layout ---------- */
         .secao { margin-bottom: 40px; }
-        .titulo-secao { border-bottom: 3px solid #e67e22; padding-bottom: 5px; color: #e67e22; font-size: 24px; }
-        .grid-flyers { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-top: 15px; }
-        .card { background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.08); text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
-        .card img { max-width: 100%; border-radius: 6px; height: 320px; object-fit: cover; background: #eee; }
-        .nome-evento { font-weight: bold; font-size: 18px; margin: 12px 0 5px 0; color: #2c3e50; }
-        .data-evento { font-weight: bold; color: #7f8c8d; font-size: 14px; margin-bottom: 10px; }
-        .loading { text-align: center; font-size: 18px; color: #666; }
+        .titulo-secao {
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 5px;
+            color: var(--primary);
+            font-size: 24px;
+            margin-top: 0;
+        }
+
+        /* Agrupamento por mês (Dentro de "Outros Eventos Futuros") */
+        .mes-secao { margin-top: 30px; }
+        .titulo-mes {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            color: #2c3e50;
+            font-size: 20px;
+            margin: 0;
+        }
+
+        .grid-flyers {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 15px;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,.08);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,.12); }
+        .card img {
+            max-width: 100%;
+            border-radius: 6px;
+            height: 320px;
+            object-fit: cover;
+            background: #eee;
+            display: block;
+        }
+        .nome-evento {
+            font-weight: bold;
+            font-size: 18px;
+            margin: 12px 0 5px;
+            color: #2c3e50;
+        }
+        .data-evento {
+            font-weight: bold;
+            color: var(--subtle);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        /* Lightbox (visualização maior) */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.85);
+            display: none;               /* hidden by default */
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .lightbox.active { display: flex; }
+        .lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(255,255,255,.2);
+        }
+        .lightbox .close {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            color: #fff;
+            font-size: 36px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity .2s;
+        }
+        .lightbox .close:hover { opacity: .7; }
+
+        /* Loading & messages */
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #666;
+            margin: 30px 0;
+        }
     </style>
 </head>
 <body>
@@ -25,132 +157,268 @@
 <div class="container">
     <h1>Mural de Eventos de Capoeira 🤸‍♂️</h1>
 
+    <!-- ----- Filtros ----- -->
     <div class="busca-container">
-        <label for="calendario"><strong>Buscar eventos por data específica:</strong> </label>
-        <input type="date" id="calendario" onchange="filtrarPorDataCalendario()">
+        <!-- Filtro exato por dia (como antes) -->
+        <label>
+            <strong>Buscar por data:</strong>
+            <input type="date" id="calendario" onchange="aplicarFiltros()">
+        </label>
+
+        <!-- NOVO: Filtro por mês -->
+        <label>
+            <strong>Filtrar por mês:</strong>
+            <select id="filtro-mes" onchange="aplicarFiltros()">
+                <option value="">Todos os meses</option>
+            </select>
+        </label>
     </div>
 
-    <div id="loading" class="loading">Carregando eventos locais...</div>
+    <!-- Indicador de carregamento -->
+    <div id="loading" class="loading">Carregando eventos locais…</div>
 
-    <!-- SEÇÃO 1: FINAL DE SEMANA MAIS PRÓXIMO -->
+    <!-- ----- Seção: Eventos do fim de semana (apenas Sábado/Domingo) ----- -->
     <div class="secao" id="secao-fds" style="display:none;">
-        <h2 class="titulo-secao">Próximos Eventos (Este Final de Semana)</h2>
+        <h2 class="titulo-secao">Próximos Eventos – Este Final de Semana</h2>
         <div class="grid-flyers" id="flyers-fds"></div>
     </div>
 
-    <!-- SEÇÃO 2: DEMAIS EVENTOS FUTUROS -->
+    <!-- ----- Seção: Outros Eventos Futuros (organizados por mês) ----- -->
     <div class="secao" id="secao-futuros" style="display:none;">
-        <h2 class="titulo-secao">Próximos Eventos do Mês</h2>
-        <div class="grid-flyers" id="flyers-futuros"></div>
+        <h2 class="titulo-secao">Outros Eventos Futuros</h2>
+        <div id="flyers-futuros"></div>
     </div>
 </div>
 
+<!-- Lightbox (caixa modal) – oculta até ser ativada -->
+<div id="lightbox" class="lightbox" onclick="fecharLightbox()">
+    <span class="close" title="Fechar">&times;</span>
+    <img id="lightbox-img" src="" alt="Visualização ampliada">
+</div>
+
 <script>
-    // Agora aponta para o arquivo local dentro do próprio GitHub!
-    const URL_CSV = "eventos.csv";
+    // --------------------------------------------------------------------
+    // 1) Configuração – CSV e dados
+    // --------------------------------------------------------------------
+    const URL_CSV = "eventos.csv";   // mantém o mesmo arquivo
+    let todosOsEventos = [];          // dados brutos do CSV (todas as datas futuras)
 
-    let todosOsEventos = [];
-
+    // Parse do CSV – identifica linhas de cabeçalho e campos vazios
     async function carregarDadosDoCSV() {
         try {
-            const resposta = await fetch(URL_CSV);
-            const textoDoCsv = await resposta.text();
-            
-            const linhas = textoDoCsv.split("\n");
-            
-            // Pula o cabeçalho se houver
-            const indiceInicial = linhas[0].includes("Data") ? 1 : 0;
-            const linhasDados = linhas.slice(indiceInicial);
-            
-            const hoje = new Date();
-            hoje.setHours(0,0,0,0); 
+            const resp = await fetch(URL_CSV);
+            const texto = await resp.text();
 
-            linhasDados.forEach(linha => {
-                if (!linha.trim()) return;
-                
-                const [dataStr, nome, link] = linha.split(",");
+            const linhas = texto.split("\n");
+            // Se a primeira linha contiver "Data", trata como cabeçalho
+            const inicio = linhas[0].includes("Data") ? 1 : 0;
+            const dados = linhas.slice(inicio);
+
+            const hoje = new Date();
+            hoje.setHours(0,0,0,0);
+
+            dados.forEach(l => {
+                if (!l.trim()) return;
+                const [dataStr, nome, link] = l.split(",");
                 if (!dataStr || !nome || !link) return;
-                
+
                 const [dia, mes, ano] = dataStr.trim().split("/");
                 const dataEvento = new Date(ano, mes - 1, dia);
+                if (dataEvento < hoje) return; // só futuros
 
-                if (dataEvento >= hoje) {
-                    todosOsEventos.push({
-                        dataStr: dataStr.trim(),
-                        dataObjeto: dataEvento,
-                        nome: nome.trim(),
-                        link: link.trim()
-                    });
-                }
+                todosOsEventos.push({
+                    dataStr: dataStr.trim(),
+                    dataObjeto: dataEvento,
+                    nome: nome.trim(),
+                    link: link.trim()
+                });
             });
 
+            // ordena do mais próximo para o mais distante
             todosOsEventos.sort((a, b) => a.dataObjeto - b.dataObjeto);
-
-            document.getElementById("loading").style.display = "none";
-            renderizarPainel(todosOsEventos);
-
-        } catch (erro) {
-            document.getElementById("loading").innerText = "Erro ao carregar o arquivo eventos.csv do repositório.";
-            console.error(erro);
+            popularcharOptionsMes();   // preenche o <select> de filtro de mês
+            aplicarFiltros();          // renderiza pela primeira vez (tudo visível)
+        } catch (e) {
+            document.getElementById("loading").innerText =
+                "Erro ao carregar o arquivo eventos.csv do repositório.";
+            console.error(e);
         }
     }
 
+    // --------------------------------------------------------------------
+    // 2) Popular opções de mês para o filtro <select>
+    // --------------------------------------------------------------------
+    function popularcharOptionsMes() {
+        const sel = document.getElementById("filtro-mes");
+        const opcoes = new Set();
+        // gera strings "YYYY-MM" a partir dos eventos
+        todosOsEventos.forEach(ev => {
+            const yyyy = ev.dataObjeto.getFullYear();
+            const mm = String(ev.dataObjeto.getMonth() + 1).padStart(2, "0");
+            opcoes.add(`${yyyy}-${mm}`);
+        });
+
+        // converte o Set em opções (<option>)
+        const arr = Array.from(opcoes).sort().reverse(); // mais recente primeiro
+        sel.innerHTML = `<option value="">Todos os meses</option>` +
+            arr.map(chave => {
+                const [ano, mes] = chave.split("-");
+                // mês em português (pt-BR)
+                const data = new Date(ano, mes - 1, 1);
+                const nomeMes = data.toLocaleString("pt-BR", { month: "long" });
+                return `<option value="${chave}">${nomeMes} ${ano}</option>`;
+            }).join("");
+
+        // mantém o filtro de data existente (input de data única)
+    }
+
+    // --------------------------------------------------------------------
+    // 3) Lógica de filtragem (data + mês)
+    // --------------------------------------------------------------------
+    function aplicarFiltros() {
+        const dataInput = document.getElementById("calendario").value; // "YYYY-MM-DD"
+        const mesSel = document.getElementById("filtro-mes").value;   // "YYYY-MM"
+
+        // começa com todos os eventos
+        let filtrados = todosOsEventos;
+
+        // filtro de data única (exata)
+        if (dataInput) {
+            const [ano, mes, dia] = dataInput.split("-");
+            const dataBuscada = new Date(ano, mes - 1, dia);
+            filtrados = filtrados.filter(ev =>
+                ev.dataObjeto.getTime() === dataBuscada.getTime()
+            );
+        }
+
+        // filtro de mês (aplica-se após o filtro de data, se ambos forem usados)
+        if (mesSel) {
+            const [ano, mes] = mesSel.split("-");
+            const inicio = new Date(ano, mes - 1, 1);
+            const fim = new Date(ano, mes - 1, 31, 23, 59, 59, 999);
+            filtrados = filtrados.filter(ev =>
+                ev.dataObjeto.getTime() >= inicio.getTime() &&
+                ev.dataObjeto.getTime() <= fim.getTime()
+            );
+        }
+
+        renderizarPainel(filtrados);
+    }
+
+    // --------------------------------------------------------------------
+    // 4) Renderização do painel
+    // --------------------------------------------------------------------
     function renderizarPainel(eventos) {
-        const containerFds = document.getElementById("flyers-fds");
-        const containerFuturos = document.getElementById("flyers-futuros");
-        
-        containerFds.innerHTML = "";
-        containerFuturos.innerHTML = "";
+        // limpa containers
+        document.getElementById("flyers-fds").innerHTML = "";
+        document.getElementById("flyers-futuros").innerHTML = "";
 
         const hoje = new Date();
-        const diaDaSemanaAtual = hoje.getDay(); 
-        const diasAteSabado = (6 - diaDaSemanaAtual) % 7;
-        
+        const diaSemanaAtual = hoje.getDay();
+        const diasAteSabado = (6 - diaSemanaAtual) % 7;
         const proximoSabado = new Date(hoje);
         proximoSabado.setDate(hoje.getDate() + diasAteSabado);
         proximoSabado.setHours(0,0,0,0);
-
         const proximoDomingo = new Date(proximoSabado);
         proximoDomingo.setDate(proximoSabado.getDate() + 1);
 
         let temFds = false;
+        // agrupar eventos futuros por mês (para o container "futuros")
+        const futurosPorMes = {};
         let temFuturos = false;
 
         eventos.forEach(ev => {
-            const cardHTML = `
-                <div class="card">
-                    <img src="${ev.link}" alt="Flyer" onerror="this.src='https://via.placeholder.com/280x320?text=Sem+Imagem'">
-                    <div class="nome-evento">${ev.nome}</div>
-                    <div class="data-evento">📅 ${ev.dataStr}</div>
-                </div>
-            `;
-
-            if (ev.dataObjeto.getTime() === proximoSabado.getTime() || ev.dataObjeto.getTime() === proximoDomingo.getTime()) {
-                containerFds.innerHTML += cardHTML;
+            const cardHTML = criarCardHTML(ev);
+            // Se for sábado ou domingo (comparação de dia), adiciona ao container "fds"
+            if (ev.dataObjeto.getTime() === proximoSabado.getTime() ||
+                ev.dataObjeto.getTime() === proximoDomingo.getTime()) {
+                document.getElementById("flyers-fds").innerHTML += cardHTML;
                 temFds = true;
             } else {
-                containerFuturos.innerHTML += cardHTML;
+                // agrupa por "YYYY-MM"
+                const chaveMes = ev.dataObjeto.getFullYear() + "-" +
+                    String(ev.dataObjeto.getMonth() + 1).padStart(2, "0");
+                if (!futurosPorMes[chaveMes]) futurosPorMes[chaveMes] = [];
+                futurosPorMes[chaveMes].push(cardHTML);
                 temFuturos = true;
             }
         });
 
+        // renderiza a seção de fim de semana
         document.getElementById("secao-fds").style.display = temFds ? "block" : "none";
-        document.getElementById("secao-futuros").style.display = temFuturos ? "block" : "none";
-    }
 
-    function filtrarPorDataCalendario() {
-        const dataInput = document.getElementById('calendario').value;
-        if (!dataInput) {
-            renderizarPainel(todosOsEventos);
-            return;
+        // constrói a área "futuros" com títulos por mês
+        const containerFuturos = document.getElementById("flyers-futuros");
+        // limpa antes de reconstruir
+        containerFuturos.innerHTML = "";
+        if (temFuturos) {
+            Object.keys(futurosPorMes).sort().forEach(chave => {
+                // converte o chave "YYYY-MM" em título amigável (ex.: "Maio 2024")
+                const [ano, mes] = chave.split("-");
+                const data = new Date(ano, mes - 1, 1);
+                const tituloMes = data.toLocaleString("pt-BR", { month: "long", year: "numeric" });
+
+                // heading do mês
+                const mesDiv = document.createElement("div");
+                mesDiv.className = "mes-secao";
+                mesDiv.innerHTML = `<h3 class="titulo-mes">${tituloMes}</h3>` +
+                    futurosPorMes[chave].join("");
+                containerFuturos.appendChild(mesDiv);
+            });
         }
-        const [ano, mes, dia] = dataInput.split("-");
-        const dataBuscada = new Date(ano, mes - 1, dia);
-        const filtrados = todosOsEventos.filter(ev => ev.dataObjeto.getTime() === dataBuscada.getTime());
-        renderizarPainel(filtrados);
+        document.getElementById("secao-futuros").style.display = temFuturos ? "block" : "none";
+
+        // esconde o indicador de carregamento se não houver dados
+        document.getElementById("loading").style.display = "none";
     }
 
+    // --------------------------------------------------------------------
+    // 5) Helper – cria HTML de um <div class="card">
+    // --------------------------------------------------------------------
+    function criarCardHTML(ev) {
+        return `
+            <div class="card" data-index="${todosOsEventos.indexOf(ev)}">
+                <img src="${ev.link}" alt="Flyer" onerror="this.src='https://via.placeholder.com/280x320?text=Sem+Imagem'">
+                <div class="nome-evento">${ev.nome}</div>
+                <div class="data-evento">📅 ${ev.dataStr}</div>
+            </div>`;
+    }
+
+    // --------------------------------------------------------------------
+    // 6) Lightbox – interações
+    // --------------------------------------------------------------------
+    // invoca quando um card é clicado
+    document.addEventListener("click", e => {
+        const card = e.target.closest(".card");
+        if (!card) return;
+
+        const idx = Number(card.getAttribute("data-index"));
+        const ev = todosOsEventos[idx];
+        if (!ev) return;
+
+        const lbImg = document.getElementById("lightbox-img");
+        lbImg.src = ev.link;
+        document.getElementById("lightbox").classList.add("active");
+    });
+
+    // fechar lightbox ao clicar fora da imagem ou no "×"
+    function fecharLightbox() {
+        document.getElementById("lightbox").classList.remove("active");
+        // limpa o src para interromper o carregamento quando não estiver visível
+        document.getElementById("lightbox-img").src = "";
+    }
+    // permite fechar com a tecla Esc também
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape" && document.getElementById("lightbox").classList.contains("active")) {
+            fecharLightbox();
+        }
+    });
+
+    // --------------------------------------------------------------------
+    // 7) Inicialização
+    // --------------------------------------------------------------------
     carregarDadosDoCSV();
 </script>
+
 </body>
 </html>
