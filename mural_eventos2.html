@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mural de Eventos - Capoeira</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f4f9; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 { text-align: center; color: #222; }
+        .busca-container { text-align: center; margin: 25px 0; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        input[type="date"] { padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px; }
+        .secao { margin-bottom: 40px; }
+        .titulo-secao { border-bottom: 3px solid #e67e22; padding-bottom: 5px; color: #e67e22; font-size: 24px; }
+        .grid-flyers { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-top: 15px; }
+        .card { background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.08); text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+        .card img { max-width: 100%; border-radius: 6px; height: 320px; object-fit: cover; background: #eee; }
+        .nome-evento { font-weight: bold; font-size: 18px; margin: 12px 0 5px 0; color: #2c3e50; }
+        .data-evento { font-weight: bold; color: #7f8c8d; font-size: 14px; margin-bottom: 10px; }
+        .loading { text-align: center; font-size: 18px; color: #666; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Mural de Eventos de Capoeira 🤸‍♂️</h1>
+
+    <div class="busca-container">
+        <label for="calendario"><strong>Buscar eventos por data específica:</strong> </label>
+        <input type="date" id="calendario" onchange="filtrarPorDataCalendario()">
+    </div>
+
+    <div id="loading" class="loading">Carregando eventos do Google Drive...</div>
+
+    <!-- SEÇÃO 1: FINAL DE SEMANA MAIS PRÓXIMO -->
+    <div class="secao" id="secao-fds" style="display:none;">
+        <h2 class="titulo-secao">Próximos Eventos (Este Final de Semana)</h2>
+        <div class="grid-flyers" id="flyers-fds"></div>
+    </div>
+
+    <!-- SEÇÃO 2: DEMAIS EVENTOS FUTUROS -->
+    <div class="secao" id="secao-futuros" style="display:none;">
+        <h2 class="titulo-secao">Próximos Eventos do Mês</h2>
+        <div class="grid-flyers" id="flyers-futuros"></div>
+    </div>
+</div>
+
+<script>
+    // Cole aqui o LINK DO CSV que você gerou no "Publicar na Web" do Google Planilhas
+    const ID_DO_ARQUIVO = "15Nw61FIKWgKXyPWvGHaH6p_9A_F6MVa8";
+
+	const URL_CSV = `https://drive.google.com/file/d/{ID_DO_ARQUIVO}`;
+
+    let todosOsEventos = [];
+
+    // Função que roda assim que a página abre
+    async function carregarDadosDoCSV() {
+        try {
+            const resposta = await fetch(URL_CSV);
+            const textoDoCsv = await reply.text();
+            
+            // Divide o CSV por linhas e ignora o cabeçalho (Data, Evento, LinkFlyer)
+            const linhas = textoDoCsv.split("\n").slice(1);
+            
+            const hoje = new Date();
+            hoje.setHours(0,0,0,0); // Zera as horas para comparar apenas os dias
+
+            linhas.forEach(linha => {
+                if (!linha.trim()) return;
+                
+                // Divide a linha pelas vírgulas
+                const [dataStr, nome, link] = linha.split(",");
+                
+                // Converte a data do formato BR (DD/MM/AAAA) para Objeto Date
+                const [dia, mes, ano] = dataStr.split("/");
+                const dataEvento = new Date(ano, mes - 1, dia);
+
+                // Regra principal: Ignora se o evento for mais antigo que HOJE
+                if (dataEvento >= hoje) {
+                    todosOsEventos.push({
+                        dataStr: dataStr,
+                        dataObjeto: dataEvento,
+                        nome: nome.trim(),
+                        link: link.trim()
+                    });
+                }
+            });
+
+            // Ordena os eventos do mais próximo para o mais distante
+            todosOsEventos.sort((a, b) => a.dataObjeto - b.dataObjeto);
+
+            document.getElementById("loading").style.display = "none";
+            renderizarPainel(todosOsEventos);
+
+        } catch (erro) {
+            document.getElementById("loading").innerText = "Erro ao carregar os dados da planilha do Drive.";
+            console.error(erro);
+        }
+    }
+
+    function renderizarPainel(eventos) {
+        const containerFds = document.getElementById("flyers-fds");
+        const containerFuturos = document.getElementById("flyers-futuros");
+        
+        containerFds.innerHTML = "";
+        containerFuturos.innerHTML = "";
+
+        const hoje = new Date();
+        
+        // Descobre a data do próximo sábado e domingo para a seção de destaques
+        const diaDaSemanaAtual = hoje.getDay(); 
+        const diasAteSabado = (6 - diaDaSemanaAtual) % 7;
+        
+        const proximoSabado = new Date(hoje);
+        proximoSabado.setDate(hoje.getDate() + diasAteSabado);
+        proximoSabado.setHours(0,0,0,0);
+
+        const proximoDomingo = new Date(proximoSabado);
+        proximoDomingo.setDate(proximoSabado.getDate() + 1);
+
+        let temFds = false;
+        let temFuturos = false;
+
+        eventos.forEach(ev => {
+            const cardHTML = `
+                <div class="card">
+                    <img src="${ev.link}" alt="Flyer do Evento" onerror="this.src='https://via.placeholder.com/280x320?text=Sem+Imagem'">
+                    <div class="nome-evento">${ev.nome}</div>
+                    <div class="data-evento">📅 ${ev.dataStr}</div>
+                </div>
+            `;
+
+            // Verifica se o evento cai no final de semana atual
+            if (ev.dataObjeto.getTime() === proximoSabado.getTime() || ev.dataObjeto.getTime() === proximoDomingo.getTime()) {
+                containerFds.innerHTML += cardHTML;
+                temFds = true;
+            } else {
+                containerFuturos.innerHTML += cardHTML;
+                temFuturos = true;
+            }
+        });
+
+        // Mostra as seções apenas se houver eventos nelas
+        document.getElementById("secao-fds").style.display = temFds ? "block" : "none";
+        document.getElementById("secao-futuros").style.display = temFuturos ? "block" : "none";
+    }
+
+    // Função de Busca pelo Calendário HTML5
+    function filtrarPorDataCalendario() {
+        const dataInput = document.getElementById('calendario').value; // Retorna AAAA-MM-DD
+        if (!dataInput) {
+            renderizarPainel(todosOsEventos); // Se limpar o input, mostra tudo de novo
+            return;
+        }
+
+        const [ano, mes, dia] = dataInput.split("-");
+        const dataBuscada = new Date(ano, mes - 1, dia);
+
+        // Filtra o array principal para achar o dia exato
+        const filtrados = todosOsEventos.filter(ev => ev.dataObjeto.getTime() === dataBuscada.getTime());
+        
+        renderizarPainel(filtrados);
+    }
+
+    // Inicia o script
+    carregarDadosDoCSV();
+</script>
+</body>
+</html>
