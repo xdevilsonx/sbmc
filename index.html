@@ -529,6 +529,15 @@ function popularOptionsMes() {
 /* -----------------------------------------------------------------
    LÓGICA DE FILTRAGEM
 ----------------------------------------------------------------- */
+/* Retorna uma cópia da data zerando o horário, para comparar apenas
+   o dia (evita bug quando o evento tem horário definido, ex.: 19:00
+   de domingo é "depois" da meia‑noite de domingo). */
+function apenasData(d) {
+    const dt = new Date(d);
+    dt.setHours(0,0,0,0);
+    return dt;
+}
+
 function aplicarFiltros() {
     const textoBusca = document.getElementById("busca-texto").value.trim().toLowerCase();
     const dataInput = document.getElementById("calendario").value;
@@ -544,7 +553,7 @@ function aplicarFiltros() {
         const [ano, mes, dia] = dataInput.split("-");
         const dataBuscada = new Date(ano, mes - 1, dia);
         filtrados = filtrados.filter(ev =>
-            ev.dataObjeto.getTime() === dataBuscada.getTime()
+            apenasData(ev.dataObjeto).getTime() === dataBuscada.getTime()
         );
     }
 
@@ -616,7 +625,7 @@ function renderizarPainel(eventos) {
                 </div>
             </div>`;
 
-        if (ev.dataObjeto.getTime() >= sextaDaSemana.getTime() && ev.dataObjeto.getTime() <= nextSunday.getTime()) {
+        if (apenasData(ev.dataObjeto).getTime() >= sextaDaSemana.getTime() && apenasData(ev.dataObjeto).getTime() <= nextSunday.getTime()) {
             fdsContainer.innerHTML += cardHTML;
             temFds = true;
         } else {
