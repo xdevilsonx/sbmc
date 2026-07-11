@@ -355,7 +355,7 @@
 
 <div class="container">
     <div class="topo">
-        <span class="eyebrow">SBMC</span>
+        <span class="eyebrow">Roda aberta</span>
         <h1>Mural de Eventos de Capoeira 🤸‍♂️</h1>
         <p class="subtitulo">Rodas, batizados e eventos da comunidade — tudo num só lugar.</p>
     </div>
@@ -411,6 +411,28 @@
 const URL_CSV = "eventos.csv"; // arquivo CSV local (mesmo diretório)
 let todosOsEventos = [];
 
+/* Faz o parse de uma linha de CSV respeitando aspas (permite vírgulas
+   dentro de um campo, por exemplo no endereço: "Rua A, 123, Centro"). */
+function parseCSVLine(line) {
+    const result = [];
+    let cur = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+            else { inQuotes = !inQuotes; }
+        } else if (char === "," && !inQuotes) {
+            result.push(cur.trim());
+            cur = "";
+        } else {
+            cur += char;
+        }
+    }
+    result.push(cur.trim());
+    return result;
+}
+
 async function carregarDadosDoCSV() {
     try {
         const resp = await fetch(URL_CSV);
@@ -425,17 +447,40 @@ async function carregarDadosDoCSV() {
 
         dataRows.forEach(r => {
             if (!r.trim()) return;
-            const [dataStr, nome, link] = r.split(",");
+            const campos = parseCSVLine(r);
+
+            // Suporta o formato novo (Data,Horario,Nome,Endereco,Link)
+            // e o formato antigo (Data,Nome,Link), para não quebrar
+            // planilhas já existentes.
+            let dataStr, horaStr, nome, endereco, link;
+            if (campos.length >= 5) {
+                [dataStr, horaStr, nome, endereco, link] = campos;
+            } else if (campos.length === 4) {
+                [dataStr, nome, endereco, link] = campos;
+                horaStr = "";
+            } else {
+                [dataStr, nome, link] = campos;
+                horaStr = ""; endereco = "";
+            }
             if (!dataStr || !nome || !link) return;
 
             const [dia, mes, ano] = dataStr.trim().split("/");
-            const dataEvento = new Date(ano, mes - 1, dia);
+            let dataEvento;
+            const horaValida = horaStr && /^\d{1,2}:\d{2}$/.test(horaStr.trim());
+            if (horaValida) {
+                const [hh, mm] = horaStr.trim().split(":");
+                dataEvento = new Date(ano, mes - 1, dia, hh, mm);
+            } else {
+                dataEvento = new Date(ano, mes - 1, dia);
+            }
             if (isNaN(dataEvento.getTime()) || dataEvento < hoje) return;
 
             todosOsEventos.push({
                 dataStr: dataStr.trim(),
+                horaStr: horaValida ? horaStr.trim() : "",
                 dataObjeto: dataEvento,
                 nome: nome.trim(),
+                endereco: (endereco || "").trim(),
                 link: link.trim()
             });
         });
@@ -530,9 +575,16 @@ function renderizarPainel(eventos) {
     const hoje = new Date();
     hoje.setHours(0,0,0,0);
 
+    // O domingo desta semana (ou o de hoje, se hoje já for domingo).
     const nextSunday = new Date(hoje);
     const dayDiff = (7 - hoje.getDay()) % 7;
     nextSunday.setDate(hoje.getDate() + dayDiff);
+
+    // O final de semana é sempre sexta‑sábado‑domingo dessa mesma semana,
+    // nunca os dias úteis anteriores (mesmo que hoje seja segunda, por
+    // exemplo, a sexta desta semana ainda está à frente).
+    const sextaDaSemana = new Date(nextSunday);
+    sextaDaSemana.setDate(nextSunday.getDate() - 2);
 
     const fdsContainer = document.getElementById("flyers-fds");
     const futurosContainer = document.getElementById("flyers-futuros");
@@ -548,11 +600,14 @@ function renderizarPainel(eventos) {
         const cardHTML = `
             <div class="card" data-idx="${idx}">
                 <div class="card-imagem-wrap">
-                    <span class="data-badge">${ev.dataStr}</span>
+                    <span class="data-badge">${ev.dataStr}${ev.horaStr ? " · " + ev.horaStr : ""}</span>
                     <img src="${ev.link}" alt="Flyer" onerror="this.src='https://via.placeholder.com/280x320?text=Sem+Imagem'">
                 </div>
                 <div class="nome-evento">${ev.nome}</div>
-                <div class="data-evento">📅 ${ev.dataStr}</div>
+                <div class="data-evento">
+                    📅 ${ev.dataStr}${ev.horaStr ? `&nbsp;&nbsp;🕒 ${ev.horaStr}` : ""}
+                    ${ev.endereco ? `<br>📍 ${ev.endereco}` : ""}
+                </div>
                 <div class="card-acoes">
                     <button type="button" class="btn-calendario"
                        onclick="event.stopPropagation(); adicionarAoCalendarioDireto(${idx})">
@@ -561,7 +616,7 @@ function renderizarPainel(eventos) {
                 </div>
             </div>`;
 
-        if (ev.dataObjeto.getTime() >= hoje.getTime() && ev.dataObjeto.getTime() <= nextSunday.getTime()) {
+        if (ev.dataObjeto.getTime() >= sextaDaSemana.getTime() && ev.dataObjeto.getTime() <= nextSunday.getTime()) {
             fdsContainer.innerHTML += cardHTML;
             temFds = true;
         } else {
@@ -605,6 +660,11 @@ function abrirQuickview(idx) {
         <div class="qv-content" onclick="event.stopPropagation()">
             <span class="qv-close" title="Fechar">&times;</span>
             <img src="${ev.link}" alt="Flyer" onerror="this.src='https://via.placeholder.com/280x320?text=Sem+Imagem'">
+            <div class="qv-titulo">${ev.nome}</div>
+            <div class="qv-sub">
+                📅 ${ev.dataStr}${ev.horaStr ? `&nbsp;&nbsp;🕒 ${ev.horaStr}` : ""}
+                ${ev.endereco ? `<br>📍 ${ev.endereco}` : ""}
+            </div>
         </div>`;
     qv.classList.add("active");
     qv.querySelector(".qv-close").onclick = fecharQuickview;
@@ -644,23 +704,47 @@ function detectarPlataforma() {
     return isIOS ? "ios" : (isAndroid ? "android" : "desktop");
 }
 
-function montarICS(titulo, dataStr) {
-    const [dia, mes, ano] = dataStr.split("/");
-    const dataCal = `${ano}${mes.padStart(2,"0")}${dia.padStart(2,"0")}`;
-    return [
+/* Escapa vírgulas, ponto‑e‑vírgula e quebras de linha conforme o
+   formato .ics exige para SUMMARY/LOCATION/DESCRIPTION. */
+function escaparICS(txt) {
+    return String(txt || "")
+        .replace(/\\/g, "\\\\")
+        .replace(/,/g, "\\,")
+        .replace(/;/g, "\\;")
+        .replace(/\n/g, "\\n");
+}
+
+function montarICS(ev) {
+    const [dia, mes, ano] = ev.dataStr.split("/");
+    const dataBase = `${ano}${mes.padStart(2,"0")}${dia.padStart(2,"0")}`;
+
+    const linhas = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
         "PRODID:-//Mural de Capoeira//Evento Único//PT",
         "CALSCALE:GREGORIAN",
         "BEGIN:VEVENT",
-        `UID:${Date.now()}@muralcapoeira.com`,
-        `DTSTART;VALUE=DATE:${dataCal}`,
-        `DTEND;VALUE=DATE:${dataCal}`,
-        `SUMMARY:${titulo}`,
-        "DESCRIPTION:Evento do Mural de Capoeira",
-        "END:VEVENT",
-        "END:VCALENDAR"
-    ].join("\r\n");
+        `UID:${Date.now()}@muralcapoeira.com`
+    ];
+
+    if (ev.horaStr) {
+        // Evento com horário definido: duração padrão de 2 horas.
+        const [hh, mm] = ev.horaStr.split(":");
+        const mmP = mm.padStart(2, "0");
+        const inicio = `${dataBase}T${hh.padStart(2,"0")}${mmP}00`;
+        const horaFim = (parseInt(hh, 10) + 2) % 24;
+        const fim = `${dataBase}T${String(horaFim).padStart(2,"0")}${mmP}00`;
+        linhas.push(`DTSTART:${inicio}`, `DTEND:${fim}`);
+    } else {
+        // Sem horário: evento de dia inteiro.
+        linhas.push(`DTSTART;VALUE=DATE:${dataBase}`, `DTEND;VALUE=DATE:${dataBase}`);
+    }
+
+    linhas.push(`SUMMARY:${escaparICS(ev.nome)}`);
+    if (ev.endereco) linhas.push(`LOCATION:${escaparICS(ev.endereco)}`);
+    linhas.push("DESCRIPTION:Evento do Mural de Capoeira", "END:VEVENT", "END:VCALENDAR");
+
+    return linhas.join("\r\n");
 }
 
 /* Abre diretamente o app de calendário do aparelho, sem passar por um
@@ -672,7 +756,7 @@ function adicionarAoCalendarioDireto(idx) {
     if (!ev) return;
 
     const plataforma = detectarPlataforma();
-    const icsContent = montarICS(ev.nome, ev.dataStr);
+    const icsContent = montarICS(ev);
 
     if (plataforma === "ios") {
         // Data URI: o Safari do iOS reconhece text/calendar e abre o
