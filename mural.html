@@ -3,12 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mural de Eventos – Capoeira</title>
+    <title>Mural de Eventos – São Bento Me Chama</title>
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Mural de Eventos – São Bento Me Chama">
+    <meta property="og:description" content="Rodas, batizados e eventos de capoeira — confira a agenda completa!">
+    <meta property="og:image" content="https://xdevilsonx.github.io/sbmc/eventos_sbmc.jpg">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1024">
+    <meta property="og:image:height" content="1024">
+    <meta property="og:url" content="https://xdevilsonx.github.io/sbmc/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Mural de Eventos – São Bento Me Chama">
+    <meta name="twitter:description" content="Rodas, batizados e eventos de capoeira da comunidade.">
+    <meta name="twitter:image" content="https://xdevilsonx.github.io/sbmc/eventos_sbmc.jpg">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <!-- ---------- ESTILOS ---------- -->
     <style>
         :root{
@@ -205,6 +218,31 @@
             transform:translateY(-4px);
             box-shadow:var(--shadow-hover);
         }
+
+        /* Card em destaque (eventos de hoje) */
+        .card--destaque{
+            border:2px solid var(--mustard);
+            box-shadow:0 0 0 4px rgba(240,162,2,.14), var(--shadow);
+        }
+        .card--destaque:hover{
+            box-shadow:0 0 0 4px rgba(240,162,2,.2), var(--shadow-hover);
+        }
+        .selo-hoje{
+            position:absolute;
+            top:10px;
+            right:10px;
+            background:var(--mustard);
+            color:var(--teal-dark);
+            font-size:11px;
+            font-weight:800;
+            padding:5px 10px;
+            border-radius:999px;
+            letter-spacing:.04em;
+            text-transform:uppercase;
+            box-shadow:0 2px 6px rgba(0,0,0,.2);
+            z-index:2;
+        }
+
         .card-imagem-wrap{
             position:relative;
             margin-bottom:12px;
@@ -381,10 +419,16 @@
 
     <div id="loading" class="loading">Carregando eventos locais…</div>
 
-    <!-- ---------- Próximos eventos ---------- -->
-    <div class="secao" id="secao-fds" style="display:none;">
-        <h2 class="titulo-secao">Este final de semana</h2>
-        <div class="grid-flyers" id="flyers-fds"></div>
+    <!-- ---------- Eventos de hoje (destaque) ---------- -->
+    <div class="secao" id="secao-hoje" style="display:none;">
+        <h2 class="titulo-secao">🔥 Hoje</h2>
+        <div class="grid-flyers" id="flyers-hoje"></div>
+    </div>
+
+    <!-- ---------- Eventos desta semana ---------- -->
+    <div class="secao" id="secao-semana" style="display:none;">
+        <h2 class="titulo-secao">Esta semana</h2>
+        <div class="grid-flyers" id="flyers-semana"></div>
     </div>
 
     <!-- ---------- Outros eventos futuros ---------- -->
@@ -500,7 +544,7 @@ async function carregarDadosDoCSV() {
         const erroEl = document.createElement("div");
         erroEl.className = "erro";
         erroEl.innerText = "Não foi possível carregar eventos.csv. Verifique se o arquivo está na mesma pasta deste HTML e se a página está sendo aberta por um servidor local (não direto do arquivo).";
-        document.querySelector(".container").insertBefore(erroEl, document.getElementById("secao-fds"));
+        document.querySelector(".container").insertBefore(erroEl, document.getElementById("secao-hoje"));
         console.error(e);
     }
 }
@@ -580,63 +624,72 @@ function limparFiltros() {
 /* -----------------------------------------------------------------
    RENDERIZAÇÃO
 ----------------------------------------------------------------- */
+function montarCardHTML(ev, idx, destaque) {
+    return `
+        <div class="card${destaque ? " card--destaque" : ""}" data-idx="${idx}">
+            ${destaque ? `<span class="selo-hoje">Hoje</span>` : ""}
+            <div class="card-imagem-wrap">
+                <span class="data-badge">${ev.dataStr}${ev.horaStr ? " · " + ev.horaStr : ""}</span>
+                <img src="${ev.link}" alt="Flyer" onerror="this.src='https://via.placeholder.com/280x320?text=Sem+Imagem'">
+            </div>
+            <div class="nome-evento">${ev.nome}</div>
+            <div class="data-evento">
+                📅 ${ev.dataStr}${ev.horaStr ? `&nbsp;&nbsp;🕒 ${ev.horaStr}` : ""}
+                ${ev.endereco ? `<br>📍 ${ev.endereco}` : ""}
+            </div>
+            <div class="card-acoes">
+                <button type="button" class="btn-calendario"
+                   onclick="event.stopPropagation(); adicionarAoCalendarioDireto(${idx})">
+                    Adicionar ao calendário
+                </button>
+            </div>
+        </div>`;
+}
+
 function renderizarPainel(eventos) {
     const hoje = new Date();
     hoje.setHours(0,0,0,0);
 
-    // O domingo desta semana (ou o de hoje, se hoje já for domingo).
-    const nextSunday = new Date(hoje);
+    // Fim desta semana = domingo desta semana (ou hoje, se hoje já for domingo).
+    const fimSemana = new Date(hoje);
     const dayDiff = (7 - hoje.getDay()) % 7;
-    nextSunday.setDate(hoje.getDate() + dayDiff);
+    fimSemana.setDate(hoje.getDate() + dayDiff);
 
-    // O final de semana é sempre sexta‑sábado‑domingo dessa mesma semana,
-    // nunca os dias úteis anteriores (mesmo que hoje seja segunda, por
-    // exemplo, a sexta desta semana ainda está à frente).
-    const sextaDaSemana = new Date(nextSunday);
-    sextaDaSemana.setDate(nextSunday.getDate() - 2);
-
-    const fdsContainer = document.getElementById("flyers-fds");
+    const hojeContainer = document.getElementById("flyers-hoje");
+    const semanaContainer = document.getElementById("flyers-semana");
     const futurosContainer = document.getElementById("flyers-futuros");
 
-    fdsContainer.innerHTML = "";
+    hojeContainer.innerHTML = "";
+    semanaContainer.innerHTML = "";
     futurosContainer.innerHTML = "";
 
-    let temFds = false;
+    let temHoje = false;
+    let temSemana = false;
     const futurosPorMes = {};
 
     eventos.forEach(ev => {
         const idx = todosOsEventos.indexOf(ev);
-        const cardHTML = `
-            <div class="card" data-idx="${idx}">
-                <div class="card-imagem-wrap">
-                    <span class="data-badge">${ev.dataStr}${ev.horaStr ? " · " + ev.horaStr : ""}</span>
-                    <img src="${ev.link}" alt="Flyer" onerror="this.src='https://via.placeholder.com/280x320?text=Sem+Imagem'">
-                </div>
-                <div class="nome-evento">${ev.nome}</div>
-                <div class="data-evento">
-                    📅 ${ev.dataStr}${ev.horaStr ? `&nbsp;&nbsp;🕒 ${ev.horaStr}` : ""}
-                    ${ev.endereco ? `<br>📍 ${ev.endereco}` : ""}
-                </div>
-                <div class="card-acoes">
-                    <button type="button" class="btn-calendario"
-                       onclick="event.stopPropagation(); adicionarAoCalendarioDireto(${idx})">
-                        Adicionar ao calendário
-                    </button>
-                </div>
-            </div>`;
+        const dataEv = apenasData(ev.dataObjeto).getTime();
 
-        if (apenasData(ev.dataObjeto).getTime() >= sextaDaSemana.getTime() && apenasData(ev.dataObjeto).getTime() <= nextSunday.getTime()) {
-            fdsContainer.innerHTML += cardHTML;
-            temFds = true;
+        if (dataEv === hoje.getTime()) {
+            // Evento de hoje: sempre em destaque, no topo de tudo.
+            hojeContainer.innerHTML += montarCardHTML(ev, idx, true);
+            temHoje = true;
+        } else if (dataEv > hoje.getTime() && dataEv <= fimSemana.getTime()) {
+            // Resto da semana (depois de hoje até domingo).
+            semanaContainer.innerHTML += montarCardHTML(ev, idx, false);
+            temSemana = true;
         } else {
+            // Qualquer coisa depois do fim desta semana.
             const chaveMes = ev.dataObjeto.getFullYear() + "-" +
                              String(ev.dataObjeto.getMonth() + 1).padStart(2, "0");
             if (!futurosPorMes[chaveMes]) futurosPorMes[chaveMes] = [];
-            futurosPorMes[chaveMes].push(cardHTML);
+            futurosPorMes[chaveMes].push(montarCardHTML(ev, idx, false));
         }
     });
 
-    document.getElementById("secao-fds").style.display = temFds ? "block" : "none";
+    document.getElementById("secao-hoje").style.display = temHoje ? "block" : "none";
+    document.getElementById("secao-semana").style.display = temSemana ? "block" : "none";
 
     if (Object.keys(futurosPorMes).length) {
         Object.keys(futurosPorMes).sort().forEach(chave => {
