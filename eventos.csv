@@ -4,7 +4,7 @@ Data,horario,Nome,Endereco,Link
 08/11/2026,10:00,Baobá,"",https://xdevilsonx.github.io/sbmc/imagens/081126_troca_de_corda_baoba.jpeg
 13/09/2026,13:00,Oju Oluaye,"R. Pombal, 70, Jd. São Paulo, Guarulhos - SP",https://xdevilsonx.github.io/sbmc/imagens/130926_batizado_oju_oluaye.jpeg
 19/09/2026,17:00,Pescadores,"Grêmio Esportivo Atibaiense",https://xdevilsonx.github.io/sbmc/imagens/190926_pescadores.jpeg
-19/09/2026,,Aruande,"",https://xdevilsonx.github.io/sbmc/imagens/190926_formatura_aruande.png
+19/09/2026,19:00,Aruande,"R. Engenheiro Marsilac, 8592, Embura Parelheiros, São Paulo - SP",https://xdevilsonx.github.io/sbmc/imagens/190926_Aruande.jpeg
 25/09/2026,20:00,Arte Negra,"R. Anastácio, 34, Conj. Res. Paes de Barros, Guarulhos - SP",https://xdevilsonx.github.io/sbmc/imagens/250926_formatura_arte_negra.png
 26/09/2026,10:00,Arte Negra,"R. Pte. Branca, 63, Conj. Res. Paes de Barros, Guarulhos - SP",https://xdevilsonx.github.io/sbmc/imagens/250926_formatura_arte_negra.png
 19/09/2026,13:00,São Bento Me Chama,"R. Dr. José Augusto de Souza e Silva, S/N, Jd. Parque Morumbi, São Paulo - SP",https://xdevilsonx.github.io/sbmc/imagens/190926_roda_sbmc_ceu_paraisopolis.jpeg
@@ -25,3 +25,6 @@ Data,horario,Nome,Endereco,Link
 31/10/2026,10:00,Semente Cultural,"R. Maria Paula Mota, Jd. Presidente Dutra, Guarulhos - SP",https://xdevilsonx.github.io/sbmc/imagens/311026_semente.jpeg
 08/11/2026,10:00,Axé Magia,"Rua Pernambuco, 836, Jardim Pte. Alta I, Guarulhos - SP",https://xdevilsonx.github.io/sbmc/imagens/081126_axe_magia.jpeg
 21/11/2026,,Simplesmente Capoeira,"São Bernardo do Campo - SP",https://xdevilsonx.github.io/sbmc/imagens/211126_simplesmente.jpeg
+16/10/2026,19:30,Energia Ancestral,"Via de Pedestre Vicente Aleixandre, 17, Parque Guaianazes - São Paulo - SP",https://xdevilsonx.github.io/sbmc/imagens/161718_09_26_energia_ancestral.png
+17/10/2026,15:00,Energia Ancestral,"Via de Pedestre Vicente Aleixandre, 17, Parque Guaianazes - São Paulo - SP",https://xdevilsonx.github.io/sbmc/imagens/161718_09_26_energia_ancestral.png
+18/10/2026,,Energia Ancestral,"República, São Paulo - SP",https://xdevilsonx.github.io/sbmc/imagens/161718_09_26_energia_ancestral.png
