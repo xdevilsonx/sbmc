@@ -5,28 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mural de Eventos – São Bento Me Chama</title>
 
-    <meta name="description" content="Rodas, batizados e eventos de capoeira — confira a agenda completa!">
-    <link rel="canonical" href="https://xdevilsonx.github.io/sbmc/">
-
-    <!-- Compartilhamento (WhatsApp, Facebook, Telegram etc.)
-         A imagem precisa: ser URL absoluta https, abrir no navegador sem login,
-         ter menos de ~300 KB e pelo menos 300x300 px.
-         Se trocar a imagem, mude o número em ?v= para o WhatsApp não usar o cache antigo. -->
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="São Bento Me Chama">
-    <meta property="og:locale" content="pt_BR">
     <meta property="og:title" content="Mural de Eventos – São Bento Me Chama">
     <meta property="og:description" content="Rodas, batizados e eventos de capoeira — confira a agenda completa!">
-    <meta property="og:url" content="https://xdevilsonx.github.io/sbmc/">
-    <meta property="og:image" content="https://xdevilsonx.github.io/sbmc/eventos_sbmc.jpg?v=2">
-    <meta property="og:image:secure_url" content="https://xdevilsonx.github.io/sbmc/eventos_sbmc.jpg?v=2">
+    <meta property="og:image" content="https://xdevilsonx.github.io/sbmc/eventos_sbmc.jpg">
     <meta property="og:image:type" content="image/jpeg">
-    <meta property="og:image:alt" content="Mural de Eventos de Capoeira – São Bento Me Chama">
+    <meta property="og:image:width" content="1024">
+    <meta property="og:image:height" content="1024">
+    <meta property="og:url" content="https://xdevilsonx.github.io/sbmc/">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Mural de Eventos – São Bento Me Chama">
     <meta name="twitter:description" content="Rodas, batizados e eventos de capoeira da comunidade.">
-    <meta name="twitter:image" content="https://xdevilsonx.github.io/sbmc/eventos_sbmc.jpg?v=2">
+    <meta name="twitter:image" content="https://xdevilsonx.github.io/sbmc/eventos_sbmc.jpg">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -291,45 +282,6 @@
             font-size:13px;
             margin-bottom:12px;
         }
-
-        .endereco-link{
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            gap:10px;
-            margin:0 0 14px;
-            padding:9px 10px 9px 12px;
-            background:var(--bg);
-            border:1.5px solid var(--line);
-            border-radius:10px;
-            color:var(--teal-dark);
-            font-size:13px;
-            font-weight:600;
-            line-height:1.35;
-            text-decoration:none;
-            transition:background .15s, border-color .15s;
-        }
-        .endereco-link:hover,
-        .endereco-link:focus-visible{
-            background:#E8F3F1;
-            border-color:var(--teal);
-            outline:none;
-        }
-        .endereco-texto{flex:1;min-width:0;}
-        .endereco-navegar{
-            flex-shrink:0;
-            display:inline-flex;
-            align-items:center;
-            gap:4px;
-            background:var(--teal);
-            color:#fff;
-            font-size:12px;
-            font-weight:700;
-            padding:6px 10px;
-            border-radius:999px;
-            white-space:nowrap;
-        }
-        .endereco-link:hover .endereco-navegar{background:var(--teal-dark);}
 
         .card-acoes{
             display:flex;
@@ -672,12 +624,6 @@ function limparFiltros() {
 /* -----------------------------------------------------------------
    RENDERIZAÇÃO
 ----------------------------------------------------------------- */
-/* Monta o link de busca do Google Maps. No celular, abre direto o app
-   do Google Maps (se instalado); no computador, abre o site em nova aba. */
-function urlGoogleMaps(endereco) {
-    return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(endereco);
-}
-
 function montarCardHTML(ev, idx, destaque) {
     return `
         <div class="card${destaque ? " card--destaque" : ""}" data-idx="${idx}">
@@ -689,15 +635,8 @@ function montarCardHTML(ev, idx, destaque) {
             <div class="nome-evento">${ev.nome}</div>
             <div class="data-evento">
                 📅 ${ev.dataStr}${ev.horaStr ? `&nbsp;&nbsp;🕒 ${ev.horaStr}` : ""}
+                ${ev.endereco ? `<br>📍 ${ev.endereco}` : ""}
             </div>
-            ${ev.endereco ? `
-            <a class="endereco-link" href="${urlGoogleMaps(ev.endereco)}"
-               target="_blank" rel="noopener noreferrer"
-               aria-label="Abrir ${ev.endereco} no Google Maps"
-               onclick="event.stopPropagation()">
-                <span class="endereco-texto">📍 ${ev.endereco}</span>
-                <span class="endereco-navegar">Navegar ➜</span>
-            </a>` : ""}
             <div class="card-acoes">
                 <button type="button" class="btn-calendario"
                    onclick="event.stopPropagation(); adicionarAoCalendarioDireto(${idx})">
@@ -799,7 +738,7 @@ function fecharQuickview() {
 
 document.addEventListener("click", e => {
     const card = e.target.closest(".card");
-    if (card && !e.target.closest(".btn-calendario") && !e.target.closest(".endereco-link")) {
+    if (card && !e.target.closest(".btn-calendario")) {
         const idx = Number(card.getAttribute("data-idx"));
         abrirQuickview(idx);
     }
